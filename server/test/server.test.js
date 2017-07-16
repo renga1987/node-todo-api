@@ -4,12 +4,19 @@ var request = require('supertest');
 const {app}=require('./../server');
 const {Todo}= require('./../models/todo');
 
+
+const todos = [{
+  text:'First Test Todo'
+},{
+  text:'Second test todo'
+}];
+
 //This will be called before the test runs.
 //Todo.remove will remove all records in the db.
 beforeEach((done)=>{
   Todo.remove({}).then(()=>{
-    done();
-  })
+    return Todo.insertMany(todos);
+  }).then(()=>done());
 });
 
 describe('POST /todos',()=>{
@@ -27,7 +34,7 @@ describe('POST /todos',()=>{
             return done(err);
           }
           //Check from DB if there s only one record
-          Todo.find().then((todos)=>{
+          Todo.find({text}).then((todos)=>{
             expect(todos.length).toBe(1);
             expect(todos[0].text).toBe(text);
             done();
@@ -48,13 +55,23 @@ describe('POST /todos',()=>{
           }
         //Check from DB if there s no record
         Todo.find().then((todos)=>{
-          expect(todos.length).toBe(0);
+          expect(todos.length).toBe(2);
           done();
         }).catch((e)=>{
             done(e);
         });
         });
-
   });
+});
 
+describe('GET /todos',()=>{
+  it('should get all todos',(done)=>{
+      request(app)
+        .get('/todos')
+        .expect(200)
+        .expect((res)=>{
+          expect(res.body.length).toBe(2);
+        })
+        .end(done);
+  });
 });

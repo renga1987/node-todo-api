@@ -5,6 +5,7 @@ var bodyParser = require('body-parser');
 var {mongoose} = require('./db/mongoose'); //Same as above
 var {Todo} =require('./models/todo');
 var {User} = require('./models/user');
+var {ObjectID} = require('mongodb');
 
 var app = express();
 app.use(bodyParser.json()); // Parse the input json from client to JS object and set to request.
@@ -28,6 +29,22 @@ app.get('/todos',(req,res)=>{
     res.send(todos);
   },(e)=>{
     res.status(400).send(e);
+  });
+});
+
+//Get By Id 
+app.get('/todos/:id',(req,res)=>{
+  var id = req.params.id;
+  if(!ObjectID.isValid(id)){
+    return res.status(404).send();
+  }
+  Todo.findById(id).then((todo)=>{
+    if(!todo){
+      return res.status(404).send();
+    }
+    res.send({todo});
+  }).catch((e)=>{
+    res.status(400).send();
   });
 });
 
