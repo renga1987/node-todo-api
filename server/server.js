@@ -8,6 +8,9 @@ var {User} = require('./models/user');
 var {ObjectID} = require('mongodb');
 
 var app = express();
+
+const port = process.env.PORT || 3000;
+
 app.use(bodyParser.json()); // Parse the input json from client to JS object and set to request.
 
 app.post('/todos',(req,res)=>{
@@ -32,7 +35,7 @@ app.get('/todos',(req,res)=>{
   });
 });
 
-//Get By Id 
+//Get By Id
 app.get('/todos/:id',(req,res)=>{
   var id = req.params.id;
   if(!ObjectID.isValid(id)){
@@ -48,8 +51,8 @@ app.get('/todos/:id',(req,res)=>{
   });
 });
 
-app.listen(3000,()=>{
-  console.log('App Started on 3000');
+app.listen(port,()=>{
+  console.log(`App Started on ${port}`);
 });
 
 module.exports = {app};
