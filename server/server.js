@@ -1,3 +1,4 @@
+const _ = require('lodash');
 var express = require('express');
 var bodyParser = require('body-parser');
 
@@ -13,6 +14,7 @@ const port = process.env.PORT || 3000;
 
 app.use(bodyParser.json()); // Parse the input json from client to JS object and set to request.
 
+//insert
 app.post('/todos',(req,res)=>{
 //  console.log(req.body);
   var todo = new Todo({
@@ -50,6 +52,42 @@ app.get('/todos/:id',(req,res)=>{
     res.status(400).send();
   });
 });
+
+//Update
+app.patch('/todos/:id',(req,res)=>{
+  var id = req.params.id;
+  //This is done to ensure that only certain properties are updated
+  //The use cannot update the completedat. We have to take care of it.
+  //So to avoid junk properties we use the pick method of lodash.
+  var body = _.pick(req.body,['text','completed']);
+  if(!ObjectID.isValid(id)){
+    return res.status(404).send();
+  }
+
+  //Update completedAt only if completed is true
+  if(_.isBoolean(body.completed) && body.completed){
+    body.completedAt=new Date().getTime();
+  }else{
+    body.completed=false;
+    body.completedAt=null;
+  }
+
+  Todo.findByIdAndUpdate(id,
+  //Similar to mongodb update
+  {
+    $set:body
+  },{
+    new : true //Returns the updated object
+  }).then((todo)=>{
+    if(!todo){
+        return res.status(404).send();
+    }
+    res.send({todo});
+  }).catch((e)=>{
+    res.status(400).send();
+  });
+
+})
 
 app.listen(port,()=>{
   console.log(`App Started on ${port}`);
