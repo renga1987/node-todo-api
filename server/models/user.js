@@ -1,7 +1,9 @@
 var mongoose = require('mongoose');
 var validator = require('validator');
+const jwt = require('jsonwebtoken');
 
-var User = mongoose.model('User',{
+//We are creating schema since we need to access custom methods like getAuthenticationToken
+var UserSchema  = new mongoose.Schema({
   email:{
     type:String,
     required:true,
@@ -29,5 +31,25 @@ var User = mongoose.model('User',{
     }
   }]
 });
+
+//This is how we add methods to our schema.
+//This is a resuable method . Hence we have added separately.
+UserSchema.methods.getAuthenticationToken = function(){
+  //This will help to access the documents. In case the current doc
+  var user = this;
+  var access = 'auth';
+  var token = jwt.sign({_id:user._id.toHexString(),access},'abc123').toString();
+  user.tokens.push({
+    access,token
+  });
+  // Usually when there is a return inside the promise we chain another promise.
+  //Here we return the promise since we are going to handle in server.js
+  return user.save().then(()=>{
+    return token;
+  });
+};
+
+
+var User = mongoose.model('User',UserSchema);
 
 module.exports = {User};
