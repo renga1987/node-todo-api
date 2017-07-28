@@ -1,6 +1,7 @@
 var mongoose = require('mongoose');
 var validator = require('validator');
 const jwt = require('jsonwebtoken');
+var _ = require('lodash');
 
 //We are creating schema since we need to access custom methods like getAuthenticationToken
 var UserSchema  = new mongoose.Schema({
@@ -32,9 +33,16 @@ var UserSchema  = new mongoose.Schema({
   }]
 });
 
+//What excatly is sent back when a mongosse model is converted to a JSON value.
+UserSchema.methods.toJSON = function(){
+  var user = this;
+  var userObject = user.toObject();
+  return _.pick(userObject,['_id','email']);
+};
+
 //This is how we add methods to our schema.
 //This is a resuable method . Hence we have added separately.
-UserSchema.methods.getAuthenticationToken = function(){
+UserSchema.methods.generateAuthToken = function(){
   //This will help to access the documents. In case the current doc
   var user = this;
   var access = 'auth';
